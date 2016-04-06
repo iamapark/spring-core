@@ -1,6 +1,8 @@
 package jyp;
 
 import jyp.beans.factory.BeanCurrentlyInCreationException;
+import jyp.beans.factory.config.BeanDefinition;
+import jyp.beans.factory.support.RootBeanDefinition;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -57,7 +59,6 @@ public abstract class AbstractBeanFactory implements BeanFactory {
         } else {
             BeanDefinition beanDefinition = getBeanDefinition(key);
             if (beanDefinition != null) {
-
                 sharedInstance = beanHash.get(key);
                 if (sharedInstance == null) {
                     if (logger.isInfoEnabled()) {
@@ -86,15 +87,15 @@ public abstract class AbstractBeanFactory implements BeanFactory {
 
     private Object createBean(String key) {
         try {
-            BeanDefinition beanDefinition = getBeanDefinition(key);
-            PropertyValues propertyValues = beanDefinition.getPropertyValues();
+            RootBeanDefinition rootBeanDefinition = (RootBeanDefinition)getBeanDefinition(key);
+            PropertyValues propertyValues = rootBeanDefinition.getPropertyValues();
 
             Object newlyCreatedBean;
 
-            if (beanDefinition.isCreateWithConstructor()) {
+            if (rootBeanDefinition.isCreateWithConstructor()) {
 
-                ConstructorArguments constructorArguments = beanDefinition.getConstructorArguments();
-                List<ConstructorArgument> constructorList = constructorArguments.getConstructorArguments();
+                ConstructorArgumentValues constructorArgumentValues = rootBeanDefinition.getConstructorArgumentValues();
+                List<ConstructorArgument> constructorList = constructorArgumentValues.getConstructorArguments();
                 Object[] refBeans = new Object[constructorList.size()];
                 Class[] refBeanClass = new Class[constructorList.size()];
 
@@ -104,15 +105,15 @@ public abstract class AbstractBeanFactory implements BeanFactory {
                     refBeans[i] = refBean;
                 }
 
-                Class beanClass = beanDefinition.getBeanClass();
+                Class beanClass = rootBeanDefinition.getBeanClass();
                 Constructor constructor = beanClass.getConstructor(refBeanClass);
                 newlyCreatedBean = constructor.newInstance(refBeans);
 
             } else {
-                newlyCreatedBean = beanDefinition.getBeanClass().newInstance();
+                newlyCreatedBean = rootBeanDefinition.getBeanClass().newInstance();
             }
 
-            applyPropertyValues(beanDefinition, propertyValues, newlyCreatedBean, key);
+            applyPropertyValues(rootBeanDefinition, propertyValues, newlyCreatedBean, key);
             callLifecycleMethodsIfNecessary(newlyCreatedBean);
             return newlyCreatedBean;
         } catch (InstantiationException e) {
@@ -132,11 +133,11 @@ public abstract class AbstractBeanFactory implements BeanFactory {
         }
     }
 
-    private void applyPropertyValues(BeanDefinition beanDefinition,
+    private void applyPropertyValues(RootBeanDefinition rootBeanDefinition,
                                      PropertyValues propertyValues,
                                      Object bean,
                                      String beanName) {
-        Class clazz = beanDefinition.getBeanClass();
+        Class clazz = rootBeanDefinition.getBeanClass();
 
         PropertyValue[] array = propertyValues.getPropertyValues();
         for (int i = 0; i < propertyValues.getCount(); ++i) {

@@ -1,5 +1,7 @@
 package jyp;
 
+import jyp.beans.factory.config.BeanDefinition;
+
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -8,7 +10,7 @@ import java.util.Set;
 public class DefaultListableBeanFactory extends AbstractBeanFactory
         implements BeanDefinitionRegistry, ListableBeanFactory {
 
-    private Map<String, BeanDefinition> beanDefinitionHash = new HashMap();
+    private Map<String, BeanDefinition> beanDefinitionHash = new HashMap<>();
 
     public DefaultListableBeanFactory(BeanFactory parentBeanFactory) {
         super(parentBeanFactory);

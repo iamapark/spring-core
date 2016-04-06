@@ -7,6 +7,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 
+import jyp.beans.factory.support.RootBeanDefinition;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -71,26 +72,27 @@ public class XmlBeanDefinitionReader implements BeanDefinitionReader {
             throw new IllegalArgumentException("Bean without id attribute");
 
         PropertyValues propertyValues = createPropertyValues(element);
-        ConstructorArguments constructorArgument = createConstructorArgument(element);
-        BeanDefinition beanDefinition = createBeanDefinition(element, id, propertyValues, constructorArgument);
-        beanDefinitionRegistry.registerBeanDefinition(id, beanDefinition);
+        ConstructorArgumentValues constructorArgument = createConstructorArgument(element);
+        RootBeanDefinition rootBeanDefinition = createBeanDefinition(element, id, propertyValues,
+            constructorArgument);
+        beanDefinitionRegistry.registerBeanDefinition(id, rootBeanDefinition);
     }
 
-    private ConstructorArguments createConstructorArgument(Element element) {
+    private ConstructorArgumentValues createConstructorArgument(Element element) {
 
         NodeList childNodes = element.getElementsByTagName(CONSTRUCTOR_ARG);
         if (childNodes.getLength() == 0) {
             return null;
         }
 
-        ConstructorArguments constructorArguments = new ConstructorArguments();
+        ConstructorArgumentValues constructorArgumentValues = new ConstructorArgumentValues();
         for (int i=0; i < childNodes.getLength(); i++) {
             Node item = childNodes.item(i);
             String refName = ((Element) item).getAttribute(REF_ATTRIBUTE);
-            constructorArguments.addConstructorArgument(new ConstructorArgument(refName));
+            constructorArgumentValues.addConstructorArgument(new ConstructorArgument(refName));
         }
 
-        return constructorArguments;
+        return constructorArgumentValues;
     }
 
     private PropertyValue createPropertyValue(Element propElement) {
@@ -140,17 +142,17 @@ public class XmlBeanDefinitionReader implements BeanDefinitionReader {
         return propertyValues;
     }
 
-    private BeanDefinition createBeanDefinition(Element element,
-                                                String id,
-                                                PropertyValues propertyValues,
-                                                ConstructorArguments constructorArguments) {
+    private RootBeanDefinition createBeanDefinition(Element element,
+                                                    String id,
+                                                    PropertyValues propertyValues,
+                                                    ConstructorArgumentValues constructorArgumentValues) {
         if (!element.hasAttribute(CLASS_ATTRIBUTE))
             throw new IllegalArgumentException("Bean without class attribute");
         String classname = element.getAttribute(CLASS_ATTRIBUTE);
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
         try {
-            return new BeanDefinition(Class.forName(classname, true, classLoader), propertyValues,
-                constructorArguments);
+            return new RootBeanDefinition(Class.forName(classname, true, classLoader), propertyValues,
+                constructorArgumentValues);
         } catch (ClassNotFoundException e) {
             throw new UnsupportedOperationException(
                 "Error creating bean with name [" + id + "]: class '" + classname + "' not found", e);

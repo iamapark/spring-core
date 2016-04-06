@@ -7,11 +7,11 @@ import java.util.List;
  * @author jinyoung.park89
  * @since 2016. 4. 1.
  */
-public class ConstructorArguments {
+public class ConstructorArgumentValues {
 
     private List<ConstructorArgument> constructorArguments;
 
-    public ConstructorArguments() {
+    public ConstructorArgumentValues() {
     }
 
     public void addConstructorArgument(ConstructorArgument constructorArgument) {
