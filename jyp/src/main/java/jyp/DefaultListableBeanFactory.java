@@ -1,6 +1,7 @@
 package jyp;
 
 import jyp.beans.factory.config.BeanDefinition;
+import jyp.context.support.DummyAwareProcessor;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -34,6 +35,9 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory
     }
 
     protected void preInstantiate() {
+
+        super.addBeanPostProcessor(new DummyAwareProcessor());
+
         String[] beanNames = getBeanDefinitionNames();
         for (int i = 0; i < getBeanDefinitionCount(); i++) {
             getBean(beanNames[i]);

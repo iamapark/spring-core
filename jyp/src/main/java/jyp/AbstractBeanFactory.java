@@ -1,7 +1,10 @@
 package jyp;
 
 import jyp.beans.factory.BeanCurrentlyInCreationException;
+import jyp.beans.factory.BeanFactoryAware;
+import jyp.beans.factory.BeanNameAware;
 import jyp.beans.factory.config.BeanDefinition;
+import jyp.beans.factory.config.BeanPostProcessor;
 import jyp.beans.factory.support.RootBeanDefinition;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -10,15 +13,16 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class AbstractBeanFactory implements BeanFactory {
 
     private static final Object CURRENTLY_IN_CREATION = new Object();
     protected final Log logger = LogFactory.getLog(getClass());
     private final BeanFactory parentBeanFactory;
+
+    private final List beanPostProcessors = new ArrayList<>();
+
     /**
      * Map of Bean objects, keyed by id attribute
      */
@@ -29,6 +33,14 @@ public abstract class AbstractBeanFactory implements BeanFactory {
     }
 
     public abstract BeanDefinition getBeanDefinition(String key);
+
+    public void addBeanPostProcessor(BeanPostProcessor beanPostProcessor) {
+        this.beanPostProcessors.add(beanPostProcessor);
+    }
+
+    public List getBeanPostProcessors() {
+        return beanPostProcessors;
+    }
 
     @Override
     public <T> T getBean(String key, Class<T> clazz) {
@@ -90,7 +102,7 @@ public abstract class AbstractBeanFactory implements BeanFactory {
             RootBeanDefinition rootBeanDefinition = (RootBeanDefinition)getBeanDefinition(key);
             PropertyValues propertyValues = rootBeanDefinition.getPropertyValues();
 
-            Object newlyCreatedBean;
+            Object bean;
 
             if (rootBeanDefinition.isCreateWithConstructor()) {
 
@@ -107,15 +119,16 @@ public abstract class AbstractBeanFactory implements BeanFactory {
 
                 Class beanClass = rootBeanDefinition.getBeanClass();
                 Constructor constructor = beanClass.getConstructor(refBeanClass);
-                newlyCreatedBean = constructor.newInstance(refBeans);
+                bean = constructor.newInstance(refBeans);
 
             } else {
-                newlyCreatedBean = rootBeanDefinition.getBeanClass().newInstance();
+                bean = rootBeanDefinition.getBeanClass().newInstance();
             }
 
-            applyPropertyValues(rootBeanDefinition, propertyValues, newlyCreatedBean, key);
-            callLifecycleMethodsIfNecessary(newlyCreatedBean);
-            return newlyCreatedBean;
+            applyPropertyValues(rootBeanDefinition, propertyValues, bean, key);
+            bean = callLifecycleMethodsIfNecessary(bean, key);
+
+            return bean;
         } catch (InstantiationException e) {
             e.printStackTrace();
             throw new IllegalArgumentException(
@@ -182,13 +195,54 @@ public abstract class AbstractBeanFactory implements BeanFactory {
         }
     }
 
-    private void callLifecycleMethodsIfNecessary(Object bean) {
-        /*if (bean instanceof InitializingBean) {
+    private Object callLifecycleMethodsIfNecessary(Object bean, String key) {
+
+        if (bean instanceof BeanNameAware) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Invoking setBeanName() on BeanNameAware bean '" + key + "'");
+            }
+            ((BeanNameAware)bean).setBeanName(key);
+        }
+
+        if (bean instanceof BeanFactoryAware) {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Invoking setBeanFactory() on BeanFactoryAware bean '" + key + "'");
+            }
+            ((BeanFactoryAware)bean).setBeanFactory(this);
+        }
+
+        bean = applyBeanPostProcessorBeforeInitialization(bean, key);
+
+        if (bean instanceof InitializingBean) {
             ((InitializingBean)bean).afterPropertiesSet();
-        }*/
+        }
+
+        bean = applyBeanPostProcessorAfterInitialization(bean, key);
+
+        return bean;
     }
 
     protected void clear() {
         this.beanHash.clear();
+    }
+
+    public Object applyBeanPostProcessorBeforeInitialization(Object bean, String name) {
+        Object result = bean;
+        for (Object o : getBeanPostProcessors()) {
+            BeanPostProcessor beanPostProcessor = (BeanPostProcessor)o;
+            result = beanPostProcessor.postProcessorBeforeInitialization(bean, name);
+        }
+
+        return result;
+    }
+
+    public Object applyBeanPostProcessorAfterInitialization(Object bean, String name) {
+        Object result = bean;
+        for (Object o : getBeanPostProcessors()) {
+            BeanPostProcessor beanPostProcessor = (BeanPostProcessor)o;
+            result = beanPostProcessor.postProcessorAfterInitialization(bean, name);
+        }
+
+        return result;
     }
 }
