@@ -1,7 +1,6 @@
 package jyp.beans.factory.support;
 
-import jyp.PropertyValue;
-import jyp.PropertyValues;
+import jyp.beans.PropertyValues;
 import jyp.beans.factory.config.BeanDefinition;
 
 /**

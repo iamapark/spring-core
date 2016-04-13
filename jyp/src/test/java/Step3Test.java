@@ -1,4 +1,4 @@
-import jyp.XmlBeanFactory;
+import jyp.beans.factory.xml.XmlBeanFactory;
 import jyp.beans.factory.BeanCurrentlyInCreationException;
 import org.junit.Test;
 

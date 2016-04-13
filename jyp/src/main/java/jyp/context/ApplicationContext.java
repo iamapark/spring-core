@@ -1,6 +1,6 @@
 package jyp.context;
 
-import jyp.ListableBeanFactory;
+import jyp.beans.factory.ListableBeanFactory;
 import jyp.beans.factory.HierarchicalBeanFactory;
 import jyp.core.io.ResourceLoader;
 

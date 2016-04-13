@@ -1,6 +1,6 @@
 package jyp.beans.factory.config;
 
-import jyp.ListableBeanFactory;
+import jyp.beans.factory.ListableBeanFactory;
 
 /**
  * @author jinyoung.park89

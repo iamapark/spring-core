@@ -1,4 +1,4 @@
-package jyp;
+package jyp.beans;
 
 import java.util.ArrayList;
 

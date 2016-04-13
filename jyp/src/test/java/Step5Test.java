@@ -3,7 +3,7 @@ import static junit.framework.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 
-import jyp.XmlBeanFactory;
+import jyp.beans.factory.xml.XmlBeanFactory;
 import jyp.bean.Jyp;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;

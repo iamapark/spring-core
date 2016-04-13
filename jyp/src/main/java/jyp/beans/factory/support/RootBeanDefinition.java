@@ -1,7 +1,7 @@
 package jyp.beans.factory.support;
 
-import jyp.ConstructorArgumentValues;
-import jyp.PropertyValues;
+import jyp.beans.factory.config.ConstructorArgumentValues;
+import jyp.beans.PropertyValues;
 
 public class RootBeanDefinition extends AbstractBeanDefinition {
 

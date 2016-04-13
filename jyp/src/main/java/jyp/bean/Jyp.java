@@ -1,6 +1,6 @@
 package jyp.bean;
 
-import jyp.BeanFactory;
+import jyp.beans.factory.BeanFactory;
 import jyp.beans.factory.BeanFactoryAware;
 import jyp.beans.factory.BeanNameAware;
 import jyp.beans.factory.DummyAware;

@@ -1,6 +1,6 @@
 package jyp.beans.factory.config;
 
-import jyp.BeanFactory;
+import jyp.beans.factory.BeanFactory;
 import jyp.beans.factory.HierarchicalBeanFactory;
 
 /**

@@ -1,4 +1,4 @@
-package jyp;
+package jyp.beans.factory.support;
 
 import java.io.InputStream;
 

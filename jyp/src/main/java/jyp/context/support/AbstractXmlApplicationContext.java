@@ -1,6 +1,6 @@
 package jyp.context.support;
 
-import jyp.DefaultListableBeanFactory;
+import jyp.beans.factory.support.DefaultListableBeanFactory;
 import jyp.beans.factory.config.ConfigurableListableBeanFactory;
 
 /**

@@ -1,4 +1,4 @@
-import jyp.XmlBeanFactory;
+import jyp.beans.factory.xml.XmlBeanFactory;
 import jyp.bean.Woniper;
 import jyp.bean.Woojin;
 import jyp.bean.Yoonsung;

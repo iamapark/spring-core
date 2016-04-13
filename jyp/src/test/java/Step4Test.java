@@ -2,7 +2,7 @@ import static junit.framework.Assert.assertEquals;
 
 import org.junit.Test;
 
-import jyp.XmlBeanFactory;
+import jyp.beans.factory.xml.XmlBeanFactory;
 import jyp.bean.SpringCoreTeam;
 
 /**

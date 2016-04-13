@@ -1,4 +1,4 @@
-import jyp.XmlBeanFactory;
+import jyp.beans.factory.xml.XmlBeanFactory;
 import jyp.bean.CoreTeam1;
 import jyp.bean.CoreTeam2;
 import jyp.bean.CoreTeam3;

@@ -1,4 +1,4 @@
-package jyp;
+package jyp.beans;
 
 public class PropertyValue {
 

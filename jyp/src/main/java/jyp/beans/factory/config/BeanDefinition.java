@@ -1,7 +1,6 @@
 package jyp.beans.factory.config;
 
-import jyp.ConstructorArgumentValues;
-import jyp.PropertyValues;
+import jyp.beans.PropertyValues;
 
 /**
  * @author jinyoung.park89
