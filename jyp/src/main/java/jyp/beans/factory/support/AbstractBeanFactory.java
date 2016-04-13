@@ -6,6 +6,7 @@ import jyp.beans.PropertyValues;
 import jyp.beans.factory.*;
 import jyp.beans.factory.config.BeanDefinition;
 import jyp.beans.factory.config.BeanPostProcessor;
+import jyp.beans.factory.config.ConfigurableBeanFactory;
 import jyp.beans.factory.config.ConstructorArgumentValues;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -16,14 +17,12 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 
-public abstract class AbstractBeanFactory implements BeanFactory {
+public abstract class AbstractBeanFactory implements ConfigurableBeanFactory, HierarchicalBeanFactory {
 
     private static final Object CURRENTLY_IN_CREATION = new Object();
     protected final Log logger = LogFactory.getLog(getClass());
-    private final BeanFactory parentBeanFactory;
-
     private final List beanPostProcessors = new ArrayList<>();
-
+    private BeanFactory parentBeanFactory;
     /**
      * Map of Bean objects, keyed by id attribute
      */
@@ -34,10 +33,6 @@ public abstract class AbstractBeanFactory implements BeanFactory {
     }
 
     public abstract BeanDefinition getBeanDefinition(String key);
-
-    public void addBeanPostProcessor(BeanPostProcessor beanPostProcessor) {
-        this.beanPostProcessors.add(beanPostProcessor);
-    }
 
     public List getBeanPostProcessors() {
         return beanPostProcessors;
@@ -245,5 +240,43 @@ public abstract class AbstractBeanFactory implements BeanFactory {
         }
 
         return result;
+    }
+
+    @Override
+    public BeanFactory getParentBeanFactory() {
+        return this.parentBeanFactory;
+    }
+
+    @Override
+    public void setParentBeanFactory(BeanFactory beanFactory) {
+        this.parentBeanFactory = beanFactory;
+    }
+
+    //---------------------------------------------------------------------
+    // Implementation of ConfigurableBeanFactory
+    //---------------------------------------------------------------------
+    @Override
+    public void addBeanPostProcessor(BeanPostProcessor beanPostProcessor) {
+        this.beanPostProcessors.add(beanPostProcessor);
+    }
+
+    @Override
+    public void registerSingleton(String beanName, Object singletonObject) {
+        // Todo: 구현 필요!!
+    }
+
+    @Override
+    public void registerAlias(String beanName, String alias) {
+        // Todo: 구현 필요!!
+    }
+
+    @Override
+    public void ignoreDependencyType(Class type) {
+        // Todo: 구현 필요!!
+    }
+
+    @Override
+    public void destroySingletons() {
+        // Todo: 구현 필요!!
     }
 }

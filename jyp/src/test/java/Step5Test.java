@@ -1,12 +1,14 @@
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 
+import jyp.bean.Service1;
+import jyp.context.ApplicationContext;
+import jyp.context.support.ClassPathXmlApplicationContext;
 import org.junit.Before;
 import org.junit.Test;
 
 import jyp.beans.factory.xml.XmlBeanFactory;
 import jyp.bean.Jyp;
-import org.springframework.context.ApplicationContext;
-import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 /**
  * @author jinyoung.park89
@@ -42,10 +44,10 @@ public class Step5Test {
 
     @Before
     public void setup() {
-        beanFactory = new XmlBeanFactory(ClassLoader.getSystemResourceAsStream("step5.xml"));
-        jyp = beanFactory.getBean("jyp", Jyp.class);
+        this.beanFactory = new XmlBeanFactory(ClassLoader.getSystemResourceAsStream("step5.xml"));
+        this.jyp = beanFactory.getBean("jyp", Jyp.class);
 
-        applicationContext = new ClassPathXmlApplicationContext("4.2.3.xml");
+        this.applicationContext = new ClassPathXmlApplicationContext("4.2.3.xml");
     }
 
     //1. BeanNameAware's setBeanName
@@ -72,5 +74,11 @@ public class Step5Test {
     public void test_PostProcessorBeforeInitialization() {
         String dummy = jyp.getDummy();
         assertEquals("jyp.dumdum", dummy);
+    }
+
+    @Test
+    public void test_applicationContext_getBean() {
+        Service1 service1FromApplicationContext = this.applicationContext.getBean("service1", Service1.class);
+        assertNotNull(service1FromApplicationContext);
     }
 }

@@ -1,17 +1,17 @@
 package jyp.beans.factory.support;
 
-import jyp.beans.factory.ListableBeanFactory;
-import jyp.beans.factory.BeanFactory;
-import jyp.beans.factory.config.BeanDefinition;
-import jyp.context.support.DummyAwareProcessor;
-
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
+import jyp.beans.factory.BeanFactory;
+import jyp.beans.factory.config.BeanDefinition;
+import jyp.beans.factory.config.ConfigurableListableBeanFactory;
+import jyp.context.support.DummyAwareProcessor;
+
 public class DefaultListableBeanFactory extends AbstractBeanFactory
-        implements BeanDefinitionRegistry, ListableBeanFactory {
+        implements BeanDefinitionRegistry, ConfigurableListableBeanFactory {
 
     private Map<String, BeanDefinition> beanDefinitionHash = new HashMap<>();
 
@@ -56,8 +56,17 @@ public class DefaultListableBeanFactory extends AbstractBeanFactory
         return beanDefinitionHash.get(key);
     }
 
+
     public void clear() {
         super.clear();
         this.beanDefinitionHash.clear();
+    }
+
+    //---------------------------------------------------------------------
+    // Implementation of ConfigurableListableBeanFactory
+    //---------------------------------------------------------------------
+    @Override
+    public void preInstantiateSingletons() {
+        // Todo: 구현 필요!!
     }
 }

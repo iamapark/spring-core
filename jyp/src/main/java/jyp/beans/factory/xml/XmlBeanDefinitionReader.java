@@ -14,6 +14,9 @@ import jyp.beans.PropertyValues;
 import jyp.beans.factory.support.BeanDefinitionReader;
 import jyp.beans.factory.support.BeanDefinitionRegistry;
 import jyp.beans.factory.support.RootBeanDefinition;
+import jyp.core.io.Resource;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -30,11 +33,20 @@ public class XmlBeanDefinitionReader implements BeanDefinitionReader {
     private static final String VALUE_ATTRIBUTE = "value";
     private static final String CONSTRUCTOR_ARG = "constructor-arg";
     private static final String REF_ATTRIBUTE = "ref";
-
+    protected final Log logger = LogFactory.getLog(getClass());
     private final BeanDefinitionRegistry beanDefinitionRegistry;
 
     public XmlBeanDefinitionReader(BeanDefinitionRegistry beanDefinitionRegistry) {
         this.beanDefinitionRegistry = beanDefinitionRegistry;
+    }
+
+
+    public void loadBeanDefinitions(Resource resource) {
+        try {
+            loadBeanDefinitions(resource.getInputStream());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

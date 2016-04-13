@@ -6,4 +6,7 @@
     <bean id="jyp" class="jyp.bean.Jyp">
     </bean>
 
+    <bean id="service1" class="jyp.bean.Service1">
+    </bean>
+
 </beans>
