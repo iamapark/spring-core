@@ -41,10 +41,11 @@ public abstract class AbstractXmlApplicationContext extends AbstractApplicationC
 
     public void loadBeanDefinitions(XmlBeanDefinitionReader reader) {
         String[] configLocations = getConfigLocations();
-        if (configLocations != null) {
-            for (String configLocation : configLocations) {
-                reader.loadBeanDefinitions(getResource(configLocation));
-            }
+        if (configLocations == null) {
+            return;
+        }
+        for (String configLocation : configLocations) {
+            reader.loadBeanDefinitions(getResource(configLocation));
         }
     }
 

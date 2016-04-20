@@ -1,6 +1,6 @@
 package jyp.context;
 
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
+import jyp.beans.factory.config.BeanFactoryPostProcessor;
 
 /**
  * @author jinyoung.park89

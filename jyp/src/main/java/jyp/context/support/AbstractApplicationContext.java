@@ -1,17 +1,19 @@
 package jyp.context.support;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.BeansException;
+
 import jyp.beans.factory.BeanFactory;
+import jyp.beans.factory.config.BeanFactoryPostProcessor;
 import jyp.beans.factory.config.ConfigurableListableBeanFactory;
 import jyp.context.ApplicationContext;
 import jyp.context.ConfigurableApplicationContext;
 import jyp.core.io.DefaultResourceLoader;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.springframework.beans.BeansException;
-import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
-
-import java.util.ArrayList;
-import java.util.List;
+import jyp.core.io.ResourceLoader;
 
 /**
  * @author jinyoung.park89
@@ -55,7 +57,15 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
         ConfigurableListableBeanFactory beanFactory = getBeanFactory();
 
         //configure the bean factory with context semantics
-        beanFactory.addBeanPostProcessor(new DummyAwareProcessor());
+        beanFactory.addBeanPostProcessor(new ApplicationContextAwareProcessor(this));
+        beanFactory.ignoreDependencyType(ResourceLoader.class);
+        beanFactory.ignoreDependencyType(ApplicationContext.class);
+        postProcessBeanFactory(beanFactory);
+
+        // invoke factory processors registered with the context instance
+        List<BeanFactoryPostProcessor> beanFactoryPostProcessors = getBeanFactoryPostProcessors();
+        beanFactoryPostProcessors.forEach(
+            beanFactoryPostProcessor -> beanFactoryPostProcessor.postProcessBeanFactory(beanFactory));
     }
 
     @Override
@@ -68,9 +78,16 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
         this.parent = parent;
     }
 
+    public List<BeanFactoryPostProcessor> getBeanFactoryPostProcessors() {
+        return beanFactoryPostProcessors;
+    }
+
     protected abstract void refreshBeanFactory();
 
     public abstract ConfigurableListableBeanFactory getBeanFactory();
+
+    protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+    }
 
     /**
      * ApplicationContext가 BeanFactory를 상속한 이유: ApplicationContext를 proxy 처럼 사용하기 위함
