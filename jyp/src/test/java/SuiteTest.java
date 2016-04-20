@@ -12,7 +12,7 @@ import org.junit.runners.Suite;
     Step2Test.class,
     Step3Test.class,
     Step4Test.class,
-    Step5Test.class
+    BeanLifeCycleTest.class
 })
 public class SuiteTest {
 }

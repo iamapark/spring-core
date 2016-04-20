@@ -1,5 +1,6 @@
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
 
 import jyp.bean.Service1;
 import jyp.context.ApplicationContext;
@@ -14,7 +15,7 @@ import jyp.bean.Jyp;
  * @author jinyoung.park89
  * @date 2016. 3. 31.
  */
-public class Step5Test {
+public class BeanLifeCycleTest {
 
     //Todo: Bean Life Cycle 구현
 
@@ -50,6 +51,16 @@ public class Step5Test {
         this.applicationContext = new ClassPathXmlApplicationContext("4.2.3.xml");
     }
 
+    @Test
+    public void test_applicationContext_getBean() {
+        Service1 service1FromApplicationContext = this.applicationContext.getBean("service1", Service1.class);
+        assertNotNull(service1FromApplicationContext);
+    }
+
+    /**
+     * Bean 생성
+     */
+
     //1. BeanNameAware's setBeanName
     @Test
     public void test_BeanNameAware() {
@@ -76,9 +87,19 @@ public class Step5Test {
         assertEquals("jyp.dumdum", dummy);
     }
 
+    //5. InitializingBean's afterPropertiesSet
     @Test
-    public void test_applicationContext_getBean() {
-        Service1 service1FromApplicationContext = this.applicationContext.getBean("service1", Service1.class);
-        assertNotNull(service1FromApplicationContext);
+    public void test_InitializingBean() {
+        Jyp jyp = this.applicationContext.getBean("jyp", Jyp.class);
+        assertTrue(jyp.getInitialized());
+    }
+
+    /**
+     * Bean 종료
+     */
+
+    // 1. DisposableBean's destroy
+    @Test
+    public void test_DisposableBean() {
     }
 }

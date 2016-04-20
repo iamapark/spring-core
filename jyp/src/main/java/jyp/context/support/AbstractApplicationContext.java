@@ -3,6 +3,7 @@ package jyp.context.support;
 import java.util.ArrayList;
 import java.util.List;
 
+import jyp.beans.factory.DisposableBean;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.beans.BeansException;
@@ -20,7 +21,7 @@ import jyp.core.io.ResourceLoader;
  * @since 2016. 4. 12.
  */
 public abstract class AbstractApplicationContext extends DefaultResourceLoader
-        implements ConfigurableApplicationContext {
+        implements ConfigurableApplicationContext, DisposableBean {
 
     /** Log4j logger used by this class. Available to subclasses. */
     protected final Log logger = LogFactory.getLog(getClass());
@@ -87,6 +88,14 @@ public abstract class AbstractApplicationContext extends DefaultResourceLoader
     public abstract ConfigurableListableBeanFactory getBeanFactory();
 
     protected void postProcessBeanFactory(ConfigurableListableBeanFactory beanFactory) throws BeansException {
+    }
+
+    @Override
+    public void destroy() throws Exception {
+        // Destroy cached beans...
+        getBeanFactory().destroySingletons();
+
+        // Todo: Close bean factory
     }
 
     /**

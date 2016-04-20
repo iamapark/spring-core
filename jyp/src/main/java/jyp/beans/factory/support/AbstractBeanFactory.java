@@ -10,6 +10,8 @@ import jyp.beans.factory.config.ConfigurableBeanFactory;
 import jyp.beans.factory.config.ConstructorArgumentValues;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.springframework.beans.factory.BeanDefinitionStoreException;
+import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -22,11 +24,11 @@ public abstract class AbstractBeanFactory implements ConfigurableBeanFactory, Hi
     private static final Object CURRENTLY_IN_CREATION = new Object();
     protected final Log logger = LogFactory.getLog(getClass());
     private final List beanPostProcessors = new ArrayList<>();
-    private BeanFactory parentBeanFactory;
     /**
      * Map of Bean objects, keyed by id attribute
      */
-    private Map<String, Object> beanHash = new HashMap<>();
+    private final Map<String, Object> singletonCache = Collections.synchronizedMap(new HashMap<>());
+    private BeanFactory parentBeanFactory;
 
     public AbstractBeanFactory(BeanFactory parentBeanFactory) {
         this.parentBeanFactory = parentBeanFactory;
@@ -48,61 +50,75 @@ public abstract class AbstractBeanFactory implements ConfigurableBeanFactory, Hi
         return getBeanInternal(key);
     }
 
-    private Object getBeanInternal(String key) {
-        if (key == null) {
+    private Object getBeanInternal(String name) {
+        if (name == null) {
             throw new IllegalArgumentException("Bean name null is not allowed");
         }
 
-        Object sharedInstance = beanHash.get(key);
+        Object sharedInstance = singletonCache.get(name);
         if (sharedInstance != null) {
             if (sharedInstance == CURRENTLY_IN_CREATION) {
                 throw new BeanCurrentlyInCreationException(
-                    key + " Requested bean is already currently in creation");
+                    name + " Requested bean is already currently in creation");
             }
             if (logger.isDebugEnabled()) {
-                logger.debug("returning cached object: " + key);
+                logger.debug("returning cached object: " + name);
             }
             return sharedInstance;
 
         } else {
-            BeanDefinition beanDefinition = getBeanDefinition(key);
-            if (beanDefinition != null) {
-                sharedInstance = beanHash.get(key);
-                if (sharedInstance == null) {
-                    if (logger.isInfoEnabled()) {
-                        logger.info("Creating shared instance of bean '" + key + "'");
-                    }
-                    this.beanHash.put(key, CURRENTLY_IN_CREATION);
-                    try {
-                        sharedInstance = createBean(key);
-                        this.beanHash.put(key, sharedInstance);
-                    } catch (BeanCurrentlyInCreationException e) {
-                        this.beanHash.remove(key);
-                        throw e;
+            RootBeanDefinition beanDefinition;
+            try {
+                beanDefinition = getMergedBeanDefinition(name);
+            } catch (NoSuchBeanDefinitionException ex) {
+                if (this.parentBeanFactory != null) {
+                    return this.parentBeanFactory.getBean(name);
+                }
+                throw ex;
+            }
+
+            if (beanDefinition.isSingleton()) {
+                synchronized (this.singletonCache) {
+                    sharedInstance = this.singletonCache.get(name);
+                    if (sharedInstance == null) {
+                        logger.info("Creating shared instance of singleton bean '" + name + "'");
+                        this.singletonCache.put(name, CURRENTLY_IN_CREATION);
+
+                        try {
+                            sharedInstance = createBean(name);
+                            addSingleton(name, sharedInstance);
+                        } catch (Exception ex) {
+                            this.singletonCache.remove(name);
+                            throw ex;
+                        }
                     }
                 }
-
                 return sharedInstance;
             } else {
-                if (this.parentBeanFactory == null) {
-                    throw new IllegalArgumentException(
-                        "Cannot instantiate [bean name : " + key + "]; is not exist");
-                }
-                return parentBeanFactory.getBean(key);
+                // singleton이 아닐 경우 bean을 계속 생성한다.
+                return createBean(name);
             }
         }
     }
 
-    private Object createBean(String key) {
+    private RootBeanDefinition getMergedBeanDefinition(String name) {
+        BeanDefinition beanDefinition = getBeanDefinition(name);
+        if (beanDefinition == null) {
+            throw new NoSuchBeanDefinitionException(name + " definition is required.");
+        }
+        return (RootBeanDefinition)beanDefinition;
+    }
+
+    private Object createBean(String beanName) {
         try {
-            RootBeanDefinition rootBeanDefinition = (RootBeanDefinition)getBeanDefinition(key);
-            PropertyValues propertyValues = rootBeanDefinition.getPropertyValues();
+            RootBeanDefinition beanDefinition = (RootBeanDefinition)getBeanDefinition(beanName);
+            PropertyValues propertyValues = beanDefinition.getPropertyValues();
 
             Object bean;
 
-            if (rootBeanDefinition.isCreateWithConstructor()) {
+            if (beanDefinition.isCreateWithConstructor()) {
 
-                ConstructorArgumentValues constructorArgumentValues = rootBeanDefinition.getConstructorArgumentValues();
+                ConstructorArgumentValues constructorArgumentValues = beanDefinition.getConstructorArgumentValues();
                 List<ConstructorArgument> constructorList = constructorArgumentValues.getConstructorArguments();
                 Object[] refBeans = new Object[constructorList.size()];
                 Class[] refBeanClass = new Class[constructorList.size()];
@@ -113,32 +129,36 @@ public abstract class AbstractBeanFactory implements ConfigurableBeanFactory, Hi
                     refBeans[i] = refBean;
                 }
 
-                Class beanClass = rootBeanDefinition.getBeanClass();
+                Class beanClass = beanDefinition.getBeanClass();
                 Constructor constructor = beanClass.getConstructor(refBeanClass);
                 bean = constructor.newInstance(refBeans);
 
             } else {
-                bean = rootBeanDefinition.getBeanClass().newInstance();
+                bean = beanDefinition.getBeanClass().newInstance();
             }
 
-            applyPropertyValues(rootBeanDefinition, propertyValues, bean, key);
-            bean = callLifecycleMethodsIfNecessary(bean, key);
+            applyPropertyValues(beanDefinition, propertyValues, bean, beanName);
+            bean = callLifecycleMethodsIfNecessary(bean, beanName);
+
+            if (beanDefinition.isSingleton()) {
+                addSingleton(beanName, bean);
+            }
 
             return bean;
         } catch (InstantiationException e) {
             e.printStackTrace();
             throw new IllegalArgumentException(
-                "Cannot instantiate [bean name : " + key + "]; is it an interface or an abstract class?");
+                "Cannot instantiate [bean name : " + beanName + "]; is it an interface or an abstract class?");
         } catch (IllegalAccessException e) {
             e.printStackTrace();
-            throw new IllegalArgumentException("Cannot instantiate [bean name : " + key
+            throw new IllegalArgumentException("Cannot instantiate [bean name : " + beanName
                 + "]; has class definition changed? Is there a public constructor?");
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
-            throw new IllegalArgumentException("Cannot instantiate [bean name: " + key + "]");
+            throw new IllegalArgumentException("Cannot instantiate [bean name: " + beanName + "]");
         } catch (InvocationTargetException e) {
             e.printStackTrace();
-            throw new IllegalArgumentException("Cannot instantiate [bean name: " + key + "]");
+            throw new IllegalArgumentException("Cannot instantiate [bean name: " + beanName + "]");
         }
     }
 
@@ -219,7 +239,7 @@ public abstract class AbstractBeanFactory implements ConfigurableBeanFactory, Hi
     }
 
     protected void clear() {
-        this.beanHash.clear();
+        this.singletonCache.clear();
     }
 
     public Object applyBeanPostProcessorBeforeInitialization(Object bean, String name) {
@@ -262,7 +282,19 @@ public abstract class AbstractBeanFactory implements ConfigurableBeanFactory, Hi
 
     @Override
     public void registerSingleton(String beanName, Object singletonObject) {
-        // Todo: 구현 필요!!
+        synchronized (this.singletonCache) {
+            Object oldObject = this.singletonCache.get(beanName);
+            if (oldObject != null) {
+                throw new BeanDefinitionStoreException("Could not register object [" + singletonObject +
+                    "] under bean name '" + beanName + "': there's already object [" +
+                    oldObject + " bound");
+            }
+            addSingleton(beanName, singletonObject);
+        }
+    }
+
+    protected void addSingleton(String beanName, Object singletonObject) {
+        this.singletonCache.put(beanName, singletonObject);
     }
 
     @Override
@@ -277,6 +309,24 @@ public abstract class AbstractBeanFactory implements ConfigurableBeanFactory, Hi
 
     @Override
     public void destroySingletons() {
+        if (logger.isInfoEnabled()) {
+            logger.info("Destroying singletons in factory {" + this + "}");
+        }
+
+        synchronized (this.singletonCache) {
+            Set<String> singletonCacheKeys = new HashSet<>(this.singletonCache.keySet());
+            singletonCacheKeys.forEach(this::destroySingleton);
+        }
+    }
+
+    protected void destroySingleton(String beanName) {
+        Object singletonInstance = this.singletonCache.remove(beanName);
+        if (singletonInstance != null) {
+            destroyBean(beanName, singletonInstance);
+        }
+    }
+
+    protected void destroyBean(String beanName, Object bean) {
         // Todo: 구현 필요!!
     }
 }
