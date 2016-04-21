@@ -11,6 +11,7 @@ import jyp.ConstructorArgument;
 import jyp.beans.PropertyValue;
 import jyp.beans.factory.config.ConstructorArgumentValues;
 import jyp.beans.PropertyValues;
+import jyp.beans.factory.support.AbstractBeanDefinitionReader;
 import jyp.beans.factory.support.BeanDefinitionReader;
 import jyp.beans.factory.support.BeanDefinitionRegistry;
 import jyp.beans.factory.support.RootBeanDefinition;
@@ -23,7 +24,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-public class XmlBeanDefinitionReader implements BeanDefinitionReader {
+public class XmlBeanDefinitionReader extends AbstractBeanDefinitionReader {
 
     private static final String BEAN_ELEMENT = "bean";
     private static final String CLASS_ATTRIBUTE = "class";
@@ -34,10 +35,13 @@ public class XmlBeanDefinitionReader implements BeanDefinitionReader {
     private static final String CONSTRUCTOR_ARG = "constructor-arg";
     private static final String REF_ATTRIBUTE = "ref";
     protected final Log logger = LogFactory.getLog(getClass());
-    private final BeanDefinitionRegistry beanDefinitionRegistry;
 
-    public XmlBeanDefinitionReader(BeanDefinitionRegistry beanDefinitionRegistry) {
-        this.beanDefinitionRegistry = beanDefinitionRegistry;
+    /*private final BeanDefinitionRegistry beanDefinitionRegistry;*/
+
+    private Class parserClass = DefaultXmlBeanDefinitionParser.class;
+
+    public XmlBeanDefinitionReader(BeanDefinitionRegistry beanFactory) {
+        super(beanFactory);
     }
 
 
@@ -93,7 +97,8 @@ public class XmlBeanDefinitionReader implements BeanDefinitionReader {
         ConstructorArgumentValues constructorArgument = createConstructorArgument(element);
         RootBeanDefinition rootBeanDefinition = createBeanDefinition(element, id, propertyValues,
             constructorArgument);
-        beanDefinitionRegistry.registerBeanDefinition(id, rootBeanDefinition);
+        this.getBeanFactory().registerBeanDefinition(id, rootBeanDefinition);
+        /*beanDefinitionRegistry.registerBeanDefinition(id, rootBeanDefinition);*/
     }
 
     private ConstructorArgumentValues createConstructorArgument(Element element) {
@@ -175,5 +180,11 @@ public class XmlBeanDefinitionReader implements BeanDefinitionReader {
             throw new UnsupportedOperationException(
                 "Error creating bean with name [" + id + "]: class '" + classname + "' not found", e);
         }
+    }
+
+    private void registerBeanDefinitions(Document doc, Resource resource)
+            throws IllegalAccessException, InstantiationException {
+        XmlBeanDefinitionParser parser = (XmlBeanDefinitionParser)this.parserClass.newInstance();
+        parser.registerBeanDefinitions(getBeanFactory(), getBeanClassLoader(), doc, resource);
     }
 }
