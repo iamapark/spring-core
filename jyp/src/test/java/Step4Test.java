@@ -15,7 +15,7 @@ public class Step4Test {
     @Test
     public void test_property_ref() {
         XmlBeanFactory beanFactory = new XmlBeanFactory(ClassLoader.getSystemResourceAsStream("step4.xml"));
-        SpringCoreTeam coreTeam1 = (SpringCoreTeam)beanFactory.getBean("coreTeam1");
+        SpringCoreTeam coreTeam1 = (SpringCoreTeam) beanFactory.getBean("coreTeam1");
 
         String memberNames = coreTeam1.getMemberNames();
         assertEquals("박재성", memberNames);

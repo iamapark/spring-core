@@ -3,6 +3,6 @@
     <bean id="javajigi" class="jyp.bean.Javajigi"/>
 
     <bean id="coreTeam1" class="jyp.bean.CoreTeam1">
-        <property name="javajigi" ref="javajigi"/>
+        <property name="javajigi" ref="javajigi" />
     </bean>
 </beans>
