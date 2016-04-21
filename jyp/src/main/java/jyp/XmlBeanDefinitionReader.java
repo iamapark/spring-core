@@ -86,9 +86,9 @@ public class XmlBeanDefinitionReader implements BeanDefinitionReader {
         }
 
         ConstructorArgumentValues constructorArgumentValues = new ConstructorArgumentValues();
-        for (int i=0; i < childNodes.getLength(); i++) {
+        for (int i = 0; i < childNodes.getLength(); i++) {
             Node item = childNodes.item(i);
-            String refName = ((Element) item).getAttribute(REF_ATTRIBUTE);
+            String refName = ((Element)item).getAttribute(REF_ATTRIBUTE);
             constructorArgumentValues.addConstructorArgument(new ConstructorArgument(refName));
         }
 

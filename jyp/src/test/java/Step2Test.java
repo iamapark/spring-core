@@ -23,9 +23,9 @@ public class Step2Test {
     }
     @Test
     public void test1() {
-        CoreTeam1 coreTeam1 = (CoreTeam1) beanFactory.getBean("coreTeam1");
-        CoreTeam2 coreTeam2 = (CoreTeam2) beanFactory.getBean("coreTeam2");
-        CoreTeam3 coreTeam3 = (CoreTeam3) beanFactory.getBean("coreTeam3");
+        CoreTeam1 coreTeam1 = (CoreTeam1)beanFactory.getBean("coreTeam1");
+        CoreTeam2 coreTeam2 = (CoreTeam2)beanFactory.getBean("coreTeam2");
+        CoreTeam3 coreTeam3 = (CoreTeam3)beanFactory.getBean("coreTeam3");
 
         assertNotNull(coreTeam1);
         assertNotNull(coreTeam2);
@@ -34,9 +34,9 @@ public class Step2Test {
 
     @Test
     public void test2() {
-        CoreTeam1 coreTeam1 = (CoreTeam1) beanFactory.getBean("coreTeam1");
-        CoreTeam2 coreTeam2 = (CoreTeam2) beanFactory.getBean("coreTeam2");
-        CoreTeam3 coreTeam3 = (CoreTeam3) beanFactory.getBean("coreTeam3");
+        CoreTeam1 coreTeam1 = (CoreTeam1)beanFactory.getBean("coreTeam1");
+        CoreTeam2 coreTeam2 = (CoreTeam2)beanFactory.getBean("coreTeam2");
+        CoreTeam3 coreTeam3 = (CoreTeam3)beanFactory.getBean("coreTeam3");
 
         assertEquals("박재성", coreTeam1.getMemberNames());
         assertEquals("박진영 이경원", coreTeam2.getMeberNames());
